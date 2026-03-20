@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>How Well Do You Know Me?</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #5e17eb, #cca1dd);
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        /* Player selection screen */
+        .player-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #5e17eb, #cca1dd);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            transition: opacity 0.8s ease;
+            padding: 10px;
+        }
+
+        .player-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .player-title {
+            font-size: min(5vh, 2.5rem);
+            color: white;
+            margin-bottom: min(3vh, 1.5rem);
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 4px rgba(94, 23, 235, 0.3);
+        }
+
+        .player-inputs {
+            display: flex;
+            gap: min(4vw, 3rem);
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: min(3vh, 1.5rem);
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            padding: min(3vh, 1.5rem) min(4vw, 2rem);
+            width: min(40vw, 300px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .player-avatar {
+            width: min(8vh, 60px);
+            height: min(8vh, 60px);
+            background: linear-gradient(135deg, #ffffff, #f0e0ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: min(4vh, 2.5rem);
+            color: #5e17eb;
+        }
+
+        .player-input {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 30px;
+            padding: 0.6rem 1.2rem;
+            width: 100%;
+            color: white;
+            font-size: min(2.5vh, 1rem);
+            text-align: center;
+        }
+
+        .player-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .start-game-btn {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: min(3.5vh, 1.5rem);
+            padding: 1rem 3rem;
+            border-radius: 50px;
+            letter-spacing: 4px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .start-game-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        /* Game screen */
+        .game-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            padding: min(2vh, 15px) min(2vw, 15px);
+            background: linear-gradient(135deg, #5e17eb, #cca1dd);
+        }
+
+        .game-screen.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Header with finish button */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .finish-top-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-size: min(2.5vh, 1rem);
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .finish-top-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        .question-counter {
+            color: white;
+            font-size: min(2.2vh, 1rem);
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            margin-left: 1rem;
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem min(4vw, 2rem);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            height: min(8vh, 70px);
+        }
+
+        .player-score {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .player-name {
+            color: white;
+            font-size: min(2.5vh, 1.2rem);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: min(20vw, 150px);
+        }
+
+        .score-value {
+            color: white;
+            font-size: min(3.5vh, 1.8rem);
+            font-weight: 300;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 1.2rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .vs-divider {
+            color: white;
+            font-size: min(2.5vh, 1.2rem);
+            padding: 0 1rem;
+            opacity: 0.8;
+        }
+
+        /* Main area */
+        .game-main {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: min(2vw, 2rem);
+            min-height: 0;
+            height: calc(100% - 18vh);
+        }
+
+        /* Question card */
+        .question-card {
+            flex: 0 0 auto;
+            width: min(35vw, 450px);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: min(3vh, 2rem) min(2vw, 2rem);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 20px 40px rgba(94, 23, 235, 0.3);
+            color: white;
+            animation: cardAppear 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        @keyframes cardAppear {
+            0% {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .question-text {
+            font-size: min(3vh, 1.8rem);
+            text-align: center;
+            font-weight: 300;
+            line-height: 1.4;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(94, 23, 235, 0.3);
+            word-break: break-word;
+        }
+
+        /* Players area */
+        .players-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: min(2vh, 1.5rem);
+            max-width: min(50vw, 600px);
+        }
+
+        .player-response-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 40px;
+            padding: min(2.5vh, 1.5rem) min(3vw, 2rem);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            animation: slideIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        .player-response-card:nth-child(1) {
+            animation-delay: 0.2s;
+        }
+
+        .player-response-card:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .player-response-name {
+            font-size: min(2.8vh, 1.4rem);
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: min(15vw, 120px);
+        }
+
+        .response-buttons {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .response-btn {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: min(2.2vh, 1rem);
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: min(10vw, 100px);
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+        }
+
+        .response-btn.correct:hover {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: #a5ffa5;
+        }
+
+        .response-btn.wrong:hover {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: #ffa5a5;
+        }
+
+        .response-btn.correct.selected {
+            background: rgba(0, 255, 0, 0.3);
+            border-color: #a5ffa5;
+            transform: scale(1.05);
+        }
+
+        .response-btn.wrong.selected {
+            background: rgba(255, 0, 0, 0.3);
+            border-color: #ffa5a5;
+            transform: scale(1.05);
+        }
+
+        .response-btn:active {
+            transform: scale(0.95);
+        }
+
+        .response-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Footer */
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 0.8rem;
+            height: min(6vh, 50px);
+        }
+
+        .kiss-hint {
+            color: white;
+            font-size: min(2.2vh, 0.9rem);
+            font-style: italic;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            backdrop-filter: blur(5px);
+        }
+
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+            font-size: min(2.2vh, 0.9rem);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .reset-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        /* Result screen */
+        .result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(94, 23, 235, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+            padding: 20px;
+        }
+
+        .result-screen.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 60px;
+            padding: min(5vh, 40px);
+            max-width: min(80vw, 500px);
+            width: 100%;
+            text-align: center;
+            color: white;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+        }
+
+        .result-card h2 {
+            font-size: min(5vh, 2.2rem);
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+
+        .final-scores {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .final-player .name {
+            font-size: min(3vh, 1.2rem);
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .final-player .points {
+            font-size: min(5vh, 2.5rem);
+            font-weight: 300;
+            background: rgba(255,255,255,0.2);
+            padding: 0.3rem 1.5rem;
+            border-radius: 50px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .winner-message {
+            font-size: min(3.5vh, 1.6rem);
+            margin: 20px 0;
+            font-weight: 300;
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 50px;
+            line-height: 1.5;
+        }
+
+        .play-again-btn {
+            background: white;
+            border: none;
+            color: #5e17eb;
+            font-size: min(3vh, 1.1rem);
+            padding: 0.8rem 2.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .play-again-btn:active {
+            transform: scale(0.95);
+            background: #f0e0ff;
+        }
+
+        /* Landscape/Portrait */
+        @media (orientation: landscape) {
+            .game-main {
+                flex-direction: row;
+            }
+        }
+
+        @media (orientation: portrait) {
+            .game-main {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            
+            .question-card {
+                width: 90%;
+                margin-bottom: 1rem;
+            }
+            
+            .players-area {
+                width: 90%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Player selection screen -->
+    <div class="player-screen" id="playerScreen">
+        <h2 class="player-title">✦ who's playing ✦</h2>
+        
+        <div class="player-inputs">
+            <div class="player-card">
+                <div class="player-avatar">😈</div>
+                <input type="text" class="player-input" id="player1Name" placeholder="Player 1" value="Player 1">
+            </div>
+            
+            <div class="player-card">
+                <div class="player-avatar">😇</div>
+                <input type="text" class="player-input" id="player2Name" placeholder="Player 2" value="Player 2">
+            </div>
+        </div>
+        
+        <button class="start-game-btn" id="startGameBtn">start</button>
+    </div>
+
+    <!-- Game screen -->
+    <div class="game-screen" id="gameScreen">
+        <!-- Header with finish button -->
+        <div class="game-header">
+            <button class="finish-top-btn" id="finishTopBtn">🏁 finish game</button>
+            <div class="question-counter" id="questionCounter">Question 1 of 50</div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <div class="player-score">
+                <span class="player-name" id="displayPlayer1">Player 1</span>
+                <span class="score-value" id="score1">0</span>
+            </div>
+            <span class="vs-divider">VS</span>
+            <div class="player-score">
+                <span class="player-name" id="displayPlayer2">Player 2</span>
+                <span class="score-value" id="score2">0</span>
+            </div>
+        </div>
+
+        <!-- Main area -->
+        <div class="game-main" id="gameMain"></div>
+
+        <div class="game-footer">
+            <span class="kiss-hint"> Couples trivia </span>
+            <button class="reset-btn" id="resetBtn">↻ new game</button>
+        </div>
+    </div>
+
+    <!-- Result screen -->
+    <div class="result-screen" id="resultScreen">
+        <div class="result-card">
+            <h2>✦ result ✦</h2>
+            <div class="final-scores">
+                <div class="final-player">
+                    <div class="name" id="finalName1">Player 1</div>
+                    <div class="points" id="finalScore1">0</div>
+                </div>
+                <div class="final-player">
+                    <div class="name" id="finalName2">Player 2</div>
+                    <div class="points" id="finalScore2">0</div>
+                </div>
+            </div>
+            <div class="winner-message" id="winnerMessage"></div>
+            <button class="play-again-btn" id="playAgainBtn">play again</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 50 QUESTIONS ABOUT THE PARTNER - British English
+            const questions = [
+                // Family & Childhood
+                { question: "How many siblings do I have?", correct: "1 brother" },
+                { question: "What's my birth order among siblings?", correct: "I'm an only child" },
+                { question: "Where was I born?", correct: "London" },
+                { question: "What's my mother's name?", correct: "Margaret" },
+                { question: "What's my father's name?", correct: "James" },
+                { question: "Which city did my parents meet?", correct: "Manchester" },
+                
+                // Food & Drink
+                { question: "What's my favourite food?", correct: "Fish and chips" },
+                { question: "What's my favourite dessert?", correct: "Sticky toffee pudding" },
+                { question: "What's my favourite alcoholic drink?", correct: "Gin and tonic" },
+                { question: "Which fruit do I absolutely hate?", correct: "Jackfruit" },
+                { question: "What's my dream breakfast?", correct: "Full English breakfast" },
+                { question: "Tea or coffee?", correct: "Tea, with milk" },
+                
+                // Entertainment
+                { question: "What's my favourite film?", correct: "Love Actually" },
+                { question: "Which series have I watched more than 3 times?", correct: "Fleabag" },
+                { question: "Which actor do I fancy the most?", correct: "Keira Knightley" },
+                { question: "What's my favourite music genre?", correct: "Britpop" },
+                { question: "Who's my favourite artist?", correct: "Adele" },
+                { question: "What's my favourite British TV show?", correct: "The Crown" },
+                
+                // Personality
+                { question: "What's my biggest fear?", correct: "Heights" },
+                { question: "What annoys me the most?", correct: "Tardiness" },
+                { question: "What's my biggest dream?", correct: "Travel the world" },
+                { question: "What makes me happiest?", correct: "Being with you" },
+                { question: "What's my favourite hobby?", correct: "Reading" },
+                
+                // Relationship
+                { question: "Where did we meet?", correct: "On an app" },
+                { question: "Where was our first date?", correct: "Italian restaurant" },
+                { question: "Who kissed first?", correct: "You did" },
+                { question: "What do I love most about you?", correct: "Your sense of humour" },
+                { question: "What's the most romantic place we've been?", correct: "The beach" },
+                
+                // Preferences
+                { question: "What's my favourite weather?", correct: "Cold and crisp" },
+                { question: "Beach or countryside?", correct: "Beach" },
+                { question: "Dog or cat person?", correct: "Dog person" },
+                { question: "Sweet or savoury?", correct: "Savoury" },
+                { question: "Morning person or night owl?", correct: "Night owl" },
+                
+                // Travel
+                { question: "What's my dream holiday destination?", correct: "Italy" },
+                { question: "Which UK city do I most want to visit?", correct: "Edinburgh" },
+                { question: "What's my favourite way to travel?", correct: "Train" },
+                { question: "Holiday: packed itinerary or relax?", correct: "Mix of both" },
+                
+                // Career
+                { question: "What did I want to be as a child?", correct: "Vet" },
+                { question: "What do I enjoy most about my current job?", correct: "The challenge" },
+                { question: "What's my biggest work stress?", correct: "Management" },
+                
+                // Quirks
+                { question: "What's my strangest habit?", correct: "Talking to myself" },
+                { question: "Which side of the bed do I sleep on?", correct: "Left side" },
+                { question: "How many alarms do I set?", correct: "3" },
+                
+                // Childhood
+                { question: "What was my favourite cartoon?", correct: "Wallace and Gromit" },
+                { question: "What was my favourite game?", correct: "Video games" },
+                
+                // Personal tastes
+                { question: "What's my favourite scent/perfume?", correct: "Woody" },
+                { question: "What's my favourite colour?", correct: "Purple" },
+                { question: "What time of day do I prefer for intimacy?", correct: "Night time" },
+                
+                // About partner
+                { question: "What do I find most attractive about you?", correct: "Your smile" },
+                { question: "What's your biggest flaw, in my opinion?", correct: "Stubbornness" },
+                { question: "What do I miss most when you're away?", correct: "Your touch" }
+            ];
+
+            // DOM elements
+            const playerScreen = document.getElementById('playerScreen');
+            const gameScreen = document.getElementById('gameScreen');
+            const resultScreen = document.getElementById('resultScreen');
+            const player1Name = document.getElementById('player1Name');
+            const player2Name = document.getElementById('player2Name');
+            const displayPlayer1 = document.getElementById('displayPlayer1');
+            const displayPlayer2 = document.getElementById('displayPlayer2');
+            const finalName1 = document.getElementById('finalName1');
+            const finalName2 = document.getElementById('finalName2');
+            const finalScore1 = document.getElementById('finalScore1');
+            const finalScore2 = document.getElementById('finalScore2');
+            const winnerMessage = document.getElementById('winnerMessage');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const gameMain = document.getElementById('gameMain');
+            const questionCounter = document.getElementById('questionCounter');
+            const score1El = document.getElementById('score1');
+            const score2El = document.getElementById('score2');
+            const resetBtn = document.getElementById('resetBtn');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            const finishTopBtn = document.getElementById('finishTopBtn');
+
+            // Game state
+            let remainingQuestions = [];
+            let currentQuestion = null;
+            let player1Answered = false;
+            let player2Answered = false;
+            let scores = { player1: 0, player2: 0 };
+            let playerNames = { player1: 'Player 1', player2: 'Player 2' };
+            let gameCompleted = false;
+            let questionsAnswered = 0;
+            let autoNextTimeout = null;
+            const totalQuestions = questions.length;
+
+            startGameBtn.addEventListener('click', () => {
+                playerNames.player1 = player1Name.value.trim() || 'Player 1';
+                playerNames.player2 = player2Name.value.trim() || 'Player 2';
+                
+                displayPlayer1.textContent = playerNames.player1;
+                displayPlayer2.textContent = playerNames.player2;
+                
+                playerScreen.classList.add('hidden');
+                gameScreen.classList.add('visible');
+                
+                resetGame();
+            });
+
+            resetBtn.addEventListener('click', resetGame);
+            playAgainBtn.addEventListener('click', () => {
+                resultScreen.classList.remove('visible');
+                resetGame();
+            });
+
+            // Top finish button
+            finishTopBtn.addEventListener('click', finalizarJogo);
+
+            function resetGame() {
+                // Clear any pending timeout
+                if (autoNextTimeout) {
+                    clearTimeout(autoNextTimeout);
+                    autoNextTimeout = null;
+                }
+                
+                remainingQuestions = [...questions];
+                scores = { player1: 0, player2: 0 };
+                score1El.textContent = '0';
+                score2El.textContent = '0';
+                gameCompleted = false;
+                questionsAnswered = 0;
+                
+                shuffleQuestions();
+                nextQuestion();
+            }
+
+            function shuffleQuestions() {
+                for (let i = remainingQuestions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [remainingQuestions[i], remainingQuestions[j]] = [remainingQuestions[j], remainingQuestions[i]];
+                }
+            }
+
+            function nextQuestion() {
+                if (remainingQuestions.length === 0) {
+                    finalizarJogo();
+                    return;
+                }
+                
+                currentQuestion = remainingQuestions.pop();
+                questionsAnswered++;
+                
+                player1Answered = false;
+                player2Answered = false;
+                
+                mostrarPergunta();
+            }
+
+            function finalizarJogo() {
+                gameCompleted = true;
+                
+                finalName1.textContent = playerNames.player1;
+                finalName2.textContent = playerNames.player2;
+                finalScore1.textContent = scores.player1;
+                finalScore2.textContent = scores.player2;
+                
+                if (scores.player1 > scores.player2) {
+                    winnerMessage.textContent = `💜 ${playerNames.player1} got more right! ${playerNames.player2} owes a gift! 💜`;
+                } else if (scores.player2 > scores.player1) {
+                    winnerMessage.textContent = `💜 ${playerNames.player2} got more right! ${playerNames.player1} owes a gift! 💜`;
+                } else {
+                    winnerMessage.textContent = `💜 It's a tie! You both owe each other a gift! 💜`;
+                }
+                
+                resultScreen.classList.add('visible');
+            }
+
+            function mostrarPergunta() {
+                if (!currentQuestion) return;
+                
+                questionCounter.textContent = `Question ${questionsAnswered} of ${totalQuestions}`;
+                
+                let html = `
+                    <!-- Question card -->
+                    <div class="question-card">
+                        <div class="question-text">${currentQuestion.question}</div>
+                    </div>
+                    
+                    <!-- Players area -->
+                    <div class="players-area">
+                        <div class="player-response-card">
+                            <span class="player-response-name">${playerNames.player1}</span>
+                            <div class="response-buttons">
+                                <button class="response-btn correct" data-player="1" data-result="correct">✓ Got it</button>
+                                <button class="response-btn wrong" data-player="1" data-result="wrong">✗ Missed</button>
+                            </div>
+                        </div>
+                        
+                        <div class="player-response-card">
+                            <span class="player-response-name">${playerNames.player2}</span>
+                            <div class="response-buttons">
+                                <button class="response-btn correct" data-player="2" data-result="correct">✓ Got it</button>
+                                <button class="response-btn wrong" data-player="2" data-result="wrong">✗ Missed</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                gameMain.innerHTML = html;
+                
+                // Response button events
+                document.querySelectorAll('.response-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const player = parseInt(btn.dataset.player);
+                        const result = btn.dataset.result;
+                        
+                        const playerButtons = document.querySelectorAll(`.response-btn[data-player="${player}"]`);
+                        playerButtons.forEach(b => {
+                            b.classList.add('disabled');
+                        });
+                        
+                        btn.classList.add('selected');
+                        
+                        if (player === 1) {
+                            player1Answered = true;
+                            if (result === 'correct') {
+                                scores.player1 += 1;
+                                score1El.textContent = scores.player1;
+                            }
+                        } else {
+                            player2Answered = true;
+                            if (result === 'correct') {
+                                scores.player2 += 1;
+                                score2El.textContent = scores.player2;
+                            }
+                        }
+                        
+                        // If both answered, auto advance after 0.8 seconds
+                        if (player1Answered && player2Answered) {
+                            if (autoNextTimeout) {
+                                clearTimeout(autoNextTimeout);
+                            }
+                            autoNextTimeout = setTimeout(() => {
+                                if (!gameCompleted) {
+                                    nextQuestion();
+                                }
+                            }, 800);
+                        }
+                    });
+                });
+            }
+
+        })();
+    </script>
+</body>
+</html>
