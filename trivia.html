@@ -786,9 +786,9 @@
                 finalScore2.textContent = scores.player2;
                 
                 if (scores.player1 > scores.player2) {
-                    winnerMessage.textContent = `💜 ${playerNames.player1} got more right! ${playerNames.player2} owes a gift! 💜`;
+                    winnerMessage.textContent = `💜 ${playerNames.player1} got more correct answers! ${playerNames.player2} owes ${playerNames.player1} a gift! 💜`;
                 } else if (scores.player2 > scores.player1) {
-                    winnerMessage.textContent = `💜 ${playerNames.player2} got more right! ${playerNames.player1} owes a gift! 💜`;
+                    winnerMessage.textContent = `💜 ${playerNames.player2} got more correct answers! ${playerNames.player1} owes ${playerNames.player2} a gift! 💜`;
                 } else {
                     winnerMessage.textContent = `💜 It's a tie! You both owe each other a gift! 💜`;
                 }
